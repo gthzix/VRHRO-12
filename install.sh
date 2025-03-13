@@ -42,3 +42,6 @@ sudo apt update
 sudo apt install lutris -y
 
 sudo apt install wine -y
+
+sudo apt install neofetch -y
+
