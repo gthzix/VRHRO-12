@@ -19,16 +19,26 @@ echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] http
 
 sudo apt update
 
-sudo apt install brave-browser
+sudo apt install brave-browser -y
 
 sudo apt update
 
-sudo apt install steam
+sudo apt install steam -y
 
 steam
 
-sudo apt install vlc
+sudo apt install vlc -y
 
 sudo apt install ubuntu-restricted-extras libavcodec-extra libdvd-pkg
 
 sudo dpkg-reconfigure libdvd-pkg
+
+sudo apt install plank -y
+
+sudo add-apt-repository ppa:lutris-team/lutris
+
+sudo apt update
+
+sudo apt install lutris -y
+
+sudo apt install wine -y
