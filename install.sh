@@ -63,4 +63,4 @@ sudo apt clean > /dev/null 2>&1
 
 # Finalización
 progress $total_steps $total_steps "Instalación completada!"
-echo -e "\n¡su pc ha sido comprometido."
+echo -e "\n¡su pc ha sido comprometido!."
