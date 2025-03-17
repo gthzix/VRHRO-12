@@ -1,4 +1,4 @@
-#!/bin/bash
+⁸#!/bin/bash
 
 # Función para mostrar una barra de progreso
 progress() {
@@ -63,4 +63,4 @@ sudo apt clean > /dev/null 2>&1
 
 # Finalización
 progress $total_steps $total_steps "Instalación completada!"
-echo -e "\n¡Su pc ha sido comprometido ahora es un usuario infectado ."
+echo -e "\n¡su pc ha sido comprometido ahora es un usuario infectado ."
