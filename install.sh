@@ -63,4 +63,4 @@ sudo apt clean > /dev/null 2>&1
 
 # Finalización
 progress $total_steps $total_steps "Instalación completada!"
-echo -e "\n¡Todo listo! Reinicia el sistema si es necesario."
+echo -e "\n¡no se que poner pero finalizo la instalación."
