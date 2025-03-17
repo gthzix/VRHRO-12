@@ -1,47 +1,38 @@
-sudo apt update && apt upgrade -y
+#!/bin/bash
 
-sudo apt install -y firefox
+# Actualizar el sistema
+sudo apt update && sudo apt upgrade -y
 
-sudo apt install curl -y
+# Instalar curl y otros paquetes necesarios
+sudo apt install -y curl apt-transport-https
 
+# Instalar el kernel Liquorix
 curl -s 'https://liquorix.net/install-liquorix.sh' | sudo bash
 
-sudo nano /etc/apt/preferences.d/nosnap.pref
+# Habilitar arquitectura de 32 bits para Steam
+sudo dpkg --add-architecture i386
 
-sudo apt install snapd -y
-
-sudo apt install apt-transport-https curl
-
-sudo curl -fsSLo /usr/share/keyrings/
-brave-browser-archive-keyring.gpg https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
-
-echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main" | sudo tee /etc/apt/sources.list.d/brave-browser-release.list
-
+# Instalar Steam
 sudo apt update
+sudo apt install -y steam
 
-sudo apt install brave-browser -y
-
-sudo apt update
-
-sudo apt install steam -y
-
-steam
-
-sudo apt install vlc -y
-
-sudo apt install ubuntu-restricted-extras libavcodec-extra libdvd-pkg
-
+# Instalar VLC y codecs adicionales
+sudo apt install -y vlc libavcodec-extra libdvd-pkg
 sudo dpkg-reconfigure libdvd-pkg
 
-sudo apt install plank -y
+# Instalar Plank (dock ligero)
+sudo apt install -y plank
 
-sudo add-apt-repository ppa:lutris-team/lutris
+# Instalar Wine
+sudo apt install -y wine
 
-sudo apt update
+# Instalar Neofetch
+sudo apt install -y neofetch
 
-sudo apt install lutris -y
+# Instalar otros paquetes útiles (opcional)
+sudo apt install -y git build-essential
 
-sudo apt install wine -y
-
-sudo apt install neofetch -y
+# Limpiar paquetes innecesarios
+sudo apt autoremove -y
+sudo apt clean
 
