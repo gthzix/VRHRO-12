@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# Función para mostrar una barra de progreso
+# Función para mostrar una barra de progreso en color verde
 progress() {
     local total_steps=$1
     local current_step=$2
     local message=$3
     local percentage=$((100 * current_step / total_steps))
-    printf "\r[%-50s] %d%% %s" $(printf "#%.0s" $(seq 1 $((percentage / 2)))) $percentage "$message"
+    printf "\r\033[32m[%-50s] %d%% %s\033[0m" $(printf "#%.0s" $(seq 1 $((percentage / 2)))) $percentage "$message"
 }
 
 # Total de pasos en el script
@@ -63,4 +63,4 @@ sudo apt clean > /dev/null 2>&1
 
 # Finalización
 progress $total_steps $total_steps "Instalación completada!"
-echo -e "\n¡su pc ha sido comprometido!."
+echo -e "\n\033[32m¡su pc ha sido comprometido!.\033[0m"
