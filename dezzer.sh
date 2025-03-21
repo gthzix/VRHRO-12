@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# Verifica si se proporcionó una URL de Deezer
-if [ -z "$1" ]; then
-    echo "Uso: $0 <URL de Deezer>"
+# Mostrar una ventana de diálogo para ingresar la URL de Deezer
+DEEZER_URL=$(zenity --entry --title "Reproducir música desde Deezer" --text "Ingresa la URL de la canción de Deezer:")
+
+# Verifica si el usuario ingresó una URL o canceló la operación
+if [ -z "$DEEZER_URL" ]; then
+    echo "No se proporcionó una URL. Saliendo..."
     exit 1
 fi
-
-# URL de Deezer
-DEEZER_URL="$1"
 
 # Descargar la canción usando yt-dlp
 echo "Descargando la canción desde Deezer..."
@@ -19,6 +19,7 @@ if [ $? -eq 0 ]; then
     mpv "temp_song.mp3"
 else
     echo "Error al descargar la canción."
+    zenity --error --text "Error al descargar la canción. Verifica la URL e intenta nuevamente."
     exit 1
 fi
 
