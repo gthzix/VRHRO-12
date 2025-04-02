@@ -1,123 +1,78 @@
 #!/bin/bash
 
-# Script para buscar películas en múltiples sitios (CineCalidad, CuevanaHD, etc.)
-# Dependencias: curl, grep, sed, awk, jq (opcional para JSON)
+# Script interactivo para buscar películas
+# Dominios actualizados al 2024-07-20
 
 # Colores
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+NC='\033[0m' # Sin color
 
-# Configuración de sitios (dominios actualizados)
-SITES=(
-  "CineCalidad|https://www.cinecalidad.ec/?s="
-  "CuevanaHD|https://cuevanahd.me/?s="
-)
+clear
+echo -e "${GREEN}═══════════════════════════════════════════${NC}"
+echo -e "${YELLOW}    BUSCADOR DE PELÍCULAS (CineCalidad/Cuevana)${NC}"
+echo -e "${GREEN}═══════════════════════════════════════════${NC}"
+echo ""
 
-# Función principal
-main() {
-  clear
-  echo -e "${GREEN}=== Buscador de Películas Multi-Sitio ===${NC}"
-  echo -e "${YELLOW}Sitios soportados:${NC}"
-  for site in "${SITES[@]}"; do
-    echo -e "${BLUE}• ${site%%|*}${NC}"
-  done
-  echo ""
-  read -p "🔍 Ingresa el nombre de la película: " query
+# Pedir nombre de la película
+read -p "🔍 Ingresa el nombre de la película: " pelicula
 
-  if [[ -z "$query" ]]; then
-    echo -e "${RED}Error: Debes ingresar un nombre.${NC}"
+if [ -z "$pelicula" ]; then
+    echo -e "${RED}Error: Debes ingresar un nombre de película${NC}"
     exit 1
-  fi
+fi
 
-  search_all_sites "$query"
-}
+# Codificar para URL (reemplaza espacios con +)
+query=$(echo "$pelicula" | sed 's/ /+/g')
 
-# Buscar en todos los sitios
-search_all_sites() {
-  local query="$1"
-  local encoded_query=$(echo "$query" | sed 's/ /+/g')
+# Buscar en CineCalidad
+echo -e "\n${YELLOW}🔎 Buscando en CineCalidad.ec...${NC}"
+cinecalidad_url="https://www.cinecalidad.ec/?s=$query"
+results=$(curl -s "$cinecalidad_url" | grep -oP '<h2 class="entry-title"><a href="\K[^"]+' | head -5)
 
-  echo -e "\n${YELLOW}🔎 Buscando \"$query\"...${NC}"
-
-  for site in "${SITES[@]}"; do
-    local name="${site%%|*}"
-    local url="${site#*|}$encoded_query"
+if [ -z "$results" ]; then
+    echo -e "${RED}No se encontraron resultados en CineCalidad${NC}"
+else
+    echo -e "${GREEN}Resultados encontrados:${NC}"
+    i=1
+    declare -A opciones
+    while IFS= read -r url; do
+        title=$(echo "$url" | sed 's|.*/||; s|-/.*||; s|-| |g')
+        echo -e "${BLUE}$i) $title${NC}"
+        opciones[$i]=$url
+        ((i++))
+    done <<< "$results"
     
-    echo -e "\n${GREEN}=== Resultados en $name ===${NC}"
-    search_site "$name" "$url"
-  done
-}
-
-# Buscar en un sitio específico
-search_site() {
-  local name="$1"
-  local url="$2"
-
-  local results=$(curl -s -L "$url" | grep -E -o '<a href="[^"]*" title="[^"]*"' | sed 's/<a href="//;s/" title="/|/;s/"//')
-
-  if [[ -z "$results" ]]; then
-    echo -e "${RED}No se encontraron resultados.${NC}"
-    return
-  fi
-
-  local i=1
-  declare -A movies
-  while IFS= read -r line; do
-    local movie_url="${line%%|*}"
-    local title="${line#*|}"
-    echo -e "${BLUE}$i) ${title}${NC}"
-    movies["$i"]="$movie_url"
-    ((i++))
-  done <<< "$results"
-
-  if [[ "${#movies[@]}" -gt 0 ]]; then
-    read -p "Selecciona una película (1-$((i-1))) o Enter para omitir: " choice
-    if [[ -n "${movies[$choice]}" ]]; then
-      get_links "${movies[$choice]}" "$name"
+    read -p "Selecciona una opción (1-$((i-1))): " seleccion
+    if [[ -n "${opciones[$seleccion]}" ]]; then
+        echo -e "\n${GREEN}Enlace de CineCalidad:${NC} ${opciones[$seleccion]}"
     fi
-  fi
-}
+fi
 
-# Obtener enlaces de descarga/streaming
-get_links() {
-  local url="$1"
-  local site="$2"
+# Buscar en CuevanaHD
+echo -e "\n${YELLOW}🔎 Buscando en CuevanaHD...${NC}"
+cuevana_url="https://cuevanahd.me/?s=$query"
+results=$(curl -s "$cuevana_url" | grep -oP '<h2 class="entry-title"><a href="\K[^"]+' | head -5)
 
-  echo -e "\n${YELLOW}📡 Obteniendo enlaces de $site...${NC}"
-  echo -e "${BLUE}URL: $url${NC}"
+if [ -z "$results" ]; then
+    echo -e "${RED}No se encontraron resultados en CuevanaHD${NC}"
+else
+    echo -e "${GREEN}Resultados encontrados:${NC}"
+    i=1
+    declare -A opciones
+    while IFS= read -r url; do
+        title=$(echo "$url" | sed 's|.*/||; s|-/.*||; s|-| |g')
+        echo -e "${BLUE}$i) $title${NC}"
+        opciones[$i]=$url
+        ((i++))
+    done <<< "$results"
+    
+    read -p "Selecciona una opción (1-$((i-1))): " seleccion
+    if [[ -n "${opciones[$seleccion]}" ]]; then
+        echo -e "\n${GREEN}Enlace de CuevanaHD:${NC} ${opciones[$seleccion]}"
+    fi
+fi
 
-  local content=$(curl -s -L "$url")
-
-  # Extraer enlaces comunes
-  local gdrive_links=$(echo "$content" | grep -oE 'https://drive\.google\.com[^" ]+' | uniq)
-  local magnet_links=$(echo "$content" | grep -oE 'magnet:\?[^" ]+' | uniq)
-  local stream_links=$(echo "$content" | grep -oE 'https?://[^" ]+\.(mp4|mkv|avi)[^" ]*' | uniq)
-
-  # Mostrar resultados
-  if [[ -n "$gdrive_links" ]]; then
-    echo -e "\n${GREEN}Google Drive Links:${NC}"
-    echo "$gdrive_links" | awk '{print NR ") " $0}'
-  fi
-
-  if [[ -n "$magnet_links" ]]; then
-    echo -e "\n${GREEN}Magnet Links (Torrents):${NC}"
-    echo "$magnet_links" | awk '{print NR ") " $0}'
-  fi
-
-  if [[ -n "$stream_links" ]]; then
-    echo -e "\n${GREEN}Streaming Links:${NC}"
-    echo "$stream_links" | awk '{print NR ") " $0}'
-  fi
-
-  if [[ -z "$gdrive_links" && -z "$magnet_links" && -z "$stream_links" ]]; then
-    echo -e "${RED}No se encontraron enlaces directos.${NC}"
-    echo "Visita la página manualmente para más opciones:"
-    echo -e "${BLUE}$url${NC}"
-  fi
-}
-
-# Ejecutar script principal
-main
+echo -e "\n${YELLOW}✨ Búsqueda completada${NC}"
