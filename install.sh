@@ -13,7 +13,18 @@ sudo dpkg --add-architecture i386
 
 
 sudo apt update
-sudo apt install -y steam
+sudo tee /etc/apt/sources.list.d/steam-stable.list <<'EOF'
+deb [arch=amd64,i386 signed-by=/usr/share/keyrings/steam.gpg] https://repo.steampowered.com/steam/ stable steam
+deb-src [arch=amd64,i386 signed-by=/usr/share/keyrings/steam.gpg] https://repo.steampowered.com/steam/ stable steam
+EOF
+ sudo dpkg --add-architecture i386
+ sudo apt-get update
+ sudo apt-get install \
+  libgl1-mesa-dri:amd64 \
+  libgl1-mesa-dri:i386 \
+  libgl1-mesa-glx:amd64 \
+  libgl1-mesa-glx:i386 \
+  steam-launcher
 
 
 sudo apt install -y vlc libavcodec-extra libdvd-pkg
