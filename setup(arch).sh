@@ -15,7 +15,7 @@ if ! command -v yay &>/dev/null; then
 fi
 
 # Instalar el kernel Liquorix usando el método oficial
-echo "Instalando kernel Liquorix con el método oficial..."
+
 curl -s 'https://liquorix.net/install-liquorix.sh' | sudo bash >/dev/null 2>&1
 
 # Habilitar arquitectura de 32 bits
