@@ -1,33 +1,25 @@
-#!/bin/bash
-
 # Actualizar paquetes
 pkg update -y && pkg upgrade -y
 
-# Instalar dependencias necesarias
-pkg install -y git curl wget python3 golang
+# Instalar dependencias
+pkg install -y wget tar
 
-# Instalar PhoneInfoga
-echo "Instalando PhoneInfoga..."
-git clone https://github.com/sundowndev/phoneinfoga.git
-cd phoneinfoga
+# Descargar la última versión de PhoneInfoga para ARM (Termux)
+wget https://github.com/sundowndev/phoneinfoga/releases/latest/download/phoneinfoga_Linux_armv7.tar.gz
 
-# Configurar Go
-export GOPATH=$HOME/go
-export PATH=$PATH:$GOPATH/bin
+# Extraer el archivo
+tar -xvzf phoneinfoga_Linux_armv7.tar.gz
 
-# Construir PhoneInfoga
-echo "Construyendo PhoneInfoga (esto puede tomar un tiempo)..."
-go build -o phoneinfoga
-
-# Mover el binario a /data/data/com.termux/files/usr/bin
+# Mover el binario a /usr/bin/
 mv phoneinfoga /data/data/com.termux/files/usr/bin/
 
 # Dar permisos de ejecución
 chmod +x /data/data/com.termux/files/usr/bin/phoneinfoga
 
-# Volver al directorio principal
-cd ..
+# Verificar instalación
+phoneinfoga --version
 
-# Instalación completada
-echo "¡PhoneInfoga se ha instalado correctamente!"
-echo "Puedes ejecutarlo con el comando: phoneinfoga"
+pkg install docker -y
+docker run --rm -it sundowndev/phoneinfoga:latest
+
+pkg install nodejs -y
