@@ -29,7 +29,7 @@ fi
 # Detectar distro
 if [ -f /etc/os-release ]; then
     . /etc/os-release
-    DISTRO="${ID,,}"          # minúsculas
+    DISTRO="${ID,,}"
     DISTRO_LIKE="${ID_LIKE,,}"
 else
     echo -e "\( {RED}No se pudo detectar la distribución. \){NC}"
@@ -82,7 +82,6 @@ install_docker() {
     if ! command -v docker &>/dev/null; then
         curl -fsSL https://get.docker.com | sh
         systemctl enable --now docker 2>/dev/null || true
-        # En sistemas sin systemd (Alpine, etc.)
         if command -v rc-update &>/dev/null; then
             rc-update add docker default 2>/dev/null || true
             rc-service docker start 2>/dev/null || true
@@ -104,15 +103,12 @@ services:
     image: jellyfin/jellyfin:latest
     container_name: jellyfin
     user: 1000:1000
-    network_mode: host          # Mejor para descubrimiento y DLNA
+    network_mode: host
     volumes:
       - /opt/jellyfin/config:/config
       - /opt/jellyfin/cache:/cache
       - /opt/jellyfin/media:/media
     restart: unless-stopped
-    # Descomenta las siguientes líneas si quieres hardware acceleration
-    # devices:
-    #   - /dev/dri:/dev/dri
 EOF
 
     cd /opt/jellyfin
@@ -122,66 +118,10 @@ EOF
     echo -e "Para montar tu biblioteca de medios edita: /opt/jellyfin/docker-compose.yml"
 }
 
-install_portable() {
-    echo -e "\( {YELLOW}→ Instalando versión portable (tar.gz)... \){NC}"
-    
-    ARCH=$(uname -m)
-    case $ARCH in
-        x86_64)  ARCH="amd64" ;;
-        aarch64) ARCH="arm64" ;;
-        armv7l)  ARCH="armhf" ;;
-        *)       echo -e "${RED}Arquitectura no soportada: \( ARCH \){NC}"; exit 1 ;;
-    esac
-
-    mkdir -p /opt/jellyfin
-    cd /opt/jellyfin
-
-    # Descargar la última versión estable
-    LATEST_URL=\( (curl -sL https://repo.jellyfin.org/files/server/linux/latest-stable/ \){ARCH}/ | grep -oP 'jellyfin_[^"]+\.tar\.gz' | head -1)
-    
-    if [ -z "$LATEST_URL" ]; then
-        echo -e "\( {RED}No se pudo encontrar el paquete portable. \){NC}"
-        exit 1
-    fi
-
-    echo "Descargando jellyfin_${LATEST_URL}..."
-    curl -L -o jellyfin.tar.gz "https://repo.jellyfin.org/files/server/linux/latest-stable/\( {ARCH}/ \){LATEST_URL}"
-    
-    tar xzf jellyfin.tar.gz --strip-components=1
-    rm jellyfin.tar.gz
-
-    mkdir -p data cache config log
-    chown -R 1000:1000 /opt/jellyfin
-
-    # Crear servicio systemd básico
-    cat > /etc/systemd/system/jellyfin.service << EOF
-[Unit]
-Description=Jellyfin Media Server
-After=network.target
-
-[Service]
-Type=simple
-User=1000
-Group=1000
-WorkingDirectory=/opt/jellyfin
-ExecStart=/opt/jellyfin/jellyfin --datadir /opt/jellyfin/data --cachedir /opt/jellyfin/cache --configdir /opt/jellyfin/config --logdir /opt/jellyfin/log
-Restart=on-failure
-TimeoutSec=15
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-    systemctl daemon-reload
-    systemctl enable --now jellyfin
-    echo "  Instalación portable completada"
-}
-
 # ------------------------------------------------------------
 # Detección e instalación
 # ------------------------------------------------------------
 
-# Normalizar detección (algunas distros tienen ID raro)
 if [[ "$DISTRO_LIKE" == *"debian"* ]] || [[ "$DISTRO_LIKE" == *"ubuntu"* ]]; then
     FAMILY="debian"
 elif [[ "$DISTRO_LIKE" == *"rhel"* ]] || [[ "$DISTRO_LIKE" == *"fedora"* ]] || [[ "$DISTRO_LIKE" == *"centos"* ]]; then
@@ -217,7 +157,6 @@ case $FAMILY in
     fedora|rhel|centos|rocky|almalinux|ol|amazon|oracle)
         echo -e "\( {GREEN}→ Familia Red Hat / Fedora detectada \){NC}"
         
-        # Intentar RPM Fusion
         if command -v dnf &>/dev/null; then
             dnf install -y https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
                            https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm 2>/dev/null || true
@@ -247,21 +186,18 @@ case $FAMILY in
 
     opensuse*|suse|sles)
         echo -e "\( {GREEN}→ openSUSE / SUSE detectado \){NC}"
-        # openSUSE no tiene paquete oficial estable → Docker
         echo -e "\( {YELLOW}openSUSE no tiene paquete oficial estable. Usando Docker... \){NC}"
         install_with_docker
         ;;
 
     alpine)
         echo -e "\( {GREEN}→ Alpine Linux detectado \){NC}"
-        # Alpine tiene el paquete en testing o community a veces, pero Docker es más fiable
         echo -e "\( {YELLOW}Usando Docker (recomendado en Alpine)... \){NC}"
         install_with_docker
         ;;
 
     void)
         echo -e "\( {GREEN}→ Void Linux detectado \){NC}"
-        # Void tiene jellyfin en los repos a veces
         if xbps-query -Rs jellyfin &>/dev/null; then
             xbps-install -Sy jellyfin
             start_service
